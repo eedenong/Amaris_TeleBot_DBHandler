@@ -20,23 +20,25 @@ class DBHandler():
         create_job_table_cmd = """
         CREATE TABLE IF NOT EXISTS JobsTable (
             id INTEGER PRIMARY KEY,
-            job_id TEXT NOT NULL,
+            job_id TEXT NOT NULL UNIQUE,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL
         );
         """
         cur.executescript(create_job_table_cmd)
+        self.conn.commit()
         print("Created JobsTable table")
         # log is an dict that of 
         # format: KEY job_id, VALUE array of results
         create_logging_table_cmd = """
         CREATE TABLE IF NOT EXISTS UserLogs (
             id INTEGER PRIMARY KEY,
-            user_id TEXT NOT NULL,
+            user_id TEXT NOT NULL UNIQUE,
             log BLOB NOT NULL
         );
         """
         cur.executescript(create_logging_table_cmd)
+        self.conn.commit()
         print("Created UserLogs table")
     # Insert new data into either JobsTable or UserLogs
     # data_to_insert is a tuple with the format:
@@ -44,13 +46,10 @@ class DBHandler():
     # if table_name is UserLogs, data_to_insert = (user_id, log)
     def insert_data(self, table_name, data_to_insert):
         cur = self.conn.cursor()
-        #cur.execte('INSERT INTO {} ({}) VALUES ?'.format(table_name, rows_col), (data_to_insert, ))
-        #print(cur.fetchone())
-        
+        #split the data_to_insert
+        data = data_to_insert.split(' ')
         # Inserting data into JobsTable
-        # Tuple will be of the format (job_id, latitude, longitude)
         if table_name == "JobsTable":
-            data = data_to_insert.split(' ')
             print("Inserting into JobsTable: {}".format(data_to_insert))
             job_id = data[0]
             lat = data[1]
@@ -61,11 +60,20 @@ class DBHandler():
             cur.execute('INSERT INTO JobsTable (job_id, latitude, longitude) VALUES (?, ?, ?)', (job_id, lat, lon))
             self.conn.commit()
         elif table_name == "UserLogs":
-            #John {"A010": ["020220_Y"], "A002":["121119_N", "010220_Y"]} -> does not work
-            #John {'A010': ['020220_Y'], 'A002':['121119_N', '010220_Y']}
-            user_id = data_to_insert.split(' ')[0]
-            logs_dict = data_to_insert[len(user_id)+1:]
-            logs_dict = ast.literal_eval(logs_dict)
+            # create a dict 
+            # format of dict will be:
+            #{job_id:[date_success1, date_success2]}
+            logs_dict = {}
+            # get the user_id
+            user_id = data[0]
+            # get job_id
+            job_id = data[1]
+            # create empty array at job_id
+            logs_dict[job_id] = []
+            # get date_success
+            date_success = data[2]
+            # append to the array
+            logs_dict[job_id].append(date_success)
             print(type(logs_dict))
             # convert to bytes
             logs_dict_bytes = json.dumps(logs_dict).encode('utf-8')
@@ -76,24 +84,46 @@ class DBHandler():
             cur.execute('INSERT INTO UserLogs (user_id, log) VALUES (?, ?)', (user_id, logs_dict_bytes))
             self.conn.commit()
         print("Data successfully inserted")
-        #cur.fetchall()
+    
     # update_data enables the changing of data in the specified table_name
-    # data_to_update is in the format:
-    # JobsTable: (latitude, longitude, job_id) -> updates a new value for latitude and longitude for the specified job_id
-    # UserLogs: (log, user_id)
+    # data_to_update is a string 
+    # For jobs table: job_id latitude longitude
+    # For userlogs : user_id job_id date_success
     def update_data(self, table_name, data_to_update):
         cur = self.conn.cursor()
         data = data_to_update.split(' ')
         if table_name == "JobsTable":
-            print("Updating JobsTable data at job {} with lat {} and long {}".format(data[0], data[1], data_to_update[2]))
-            cur.execute('UPDATE JobsTable SET latitude = ?, longitude = ? WHERE job_id = ?', (data[0], data[1]))
+            print("Updating JobsTable data at job {} with lat {} and long {}".format(data[0], data[1], data[2]))
+            cur.execute('UPDATE JobsTable SET latitude = ?, longitude = ? WHERE job_id = ?', (data[1], data[2], data[0]))
             self.conn.commit()
         elif table_name == "UserLogs":
-            print("Updating JobsTable data at user {} with log {}".format(data[0], data[1]))
-            cur.execute('UPDATE UserLogs SET log = ? WHERE user_id = ?', (data[0], data[1]))
+            # check if the job exists in the user's log dict
+            user_id = data[0]
+            job_id = data[1]
+            job_date = data[2]
+            cur.execute('SELECT log FROM UserLogs where user_id = ?', (user_id, ))
+            # get the dictionary in bytes at the user_id
+            user_log_dict = cur.fetchone()[0]
+            # convert the bytes to dictionary
+            user_log_dict = json.loads(user_log_dict)
+            print(type(user_log_dict))
+            print(user_log_dict)
+            try:
+                user_log_dict[job_id].append(job_date)
+            except:
+                # if the job_id is not found in the log_dict, create the KV pair
+                # then append the date of job 
+                user_log_dict[job_id] = []
+                user_log_dict[job_id].append(job_date)
+            # update has finished, insert the dictionary back into the database
+            logs_dict_bytes = json.dumps(user_log_dict).encode('utf-8')
+            print(logs_dict_bytes)
+
+            print("Updating JobsTable data at user {} with log {}".format(user_id, user_log_dict))
+            cur.execute('UPDATE UserLogs SET log = ? WHERE user_id = ?', (logs_dict_bytes, user_id))
             self.conn.commit()
         print("Table updated")
-        cur.fetchall()
+    
     # deletes the specified row(s) from the table_name
     # for JobsTable, use job_id to reference row to be deleted
     # for UserLgs, use user_id to reference row to be deleted

@@ -6,19 +6,24 @@ Database consists of 2 premade tables:
 1. JobsTable : Table containing the Job ID, and the location of the job represented
 as it's latitude and longitude
 2. UserLogs : Table containing the User ID and a log history of the jobs that the corresponding user has attempted before
-
+    - log history is a dictionary of the format:
+        - { job_id_1: [date_success1, date_success2],
+            job_id_2: [date_success1, date_success2],
+            .
+            .
+            .
+            }
 #### Supported functions:
 1. Insertion of _NEW_ data into JobsTable and UserLogs
 2. Update of _EXISTING_ data in JobsTable and UserLogs
-    - Allow single update and multiple update
+    - For UserLogs, update only works if the user exists in the database
 3. Deletion of data from JobsTable and UserLogs
-    - Allow deletion using either the row number or the job/user id
-    - Allow single and multiple argument deletion
 - All of the above functionality should only be done by **authorised personnel**
 4. Viewing of job or user logs from JobsTable and UserLogs
 - This can be done by **any** user of the bot
 
 - Follow formatting specified in the formats section
+- To implement: multiple insertion/deletion/update
 
 ### Main functions
 **insert_data(table_name, data_to_insert)**
@@ -46,16 +51,11 @@ Parameters:
 
 
 JobsTable:
-<job_id> <latitude> <longitude> /r/n
-- repeat until there are no more jobs to input
+<job_id> <latitude> <longitude> 
 
 UserLogs:
-<user_id> /r/n
-<job_1_id> <date_success>
-...
-<job_final_id> <data_success>
-/r/n
-- repeat if there are more users to input, otherwise press enter
+<user_id> <job_1_id> <date_success>
+
 
 ### View / Deletion
 JobsTable:

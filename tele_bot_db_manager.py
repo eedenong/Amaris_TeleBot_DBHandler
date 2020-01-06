@@ -37,14 +37,16 @@ def cmd_line_helper_test(handler):
         handler.insert_data(table_name, data_to_insert)
         print("Finished inserting data")
         return True
+   
     elif cmd == "UPDATE":
         table_name = input("Please enter table name: ")
         data_to_update = input("Please input the data: ")
         handler.update_data(table_name, data_to_update)
         return True
+    
     elif cmd == "DELETE":
         table_name = input("Please enter table name: ")
-        use_id = input("Do you want to use row id? (Y/N):")
+        use_id = input("Do you want to use row id? (Y/N): ")
         use_id = use_id.upper()
         if use_id == "Y":
             use_id = True
@@ -57,6 +59,7 @@ def cmd_line_helper_test(handler):
         else:
             row_to_delete = input("Please enter the row to be deleted (job_id or user_id): ")
             handler.delete_data(table_name, row_to_delete)
+    
     elif cmd == "VIEW":
         table_name = input("Please enter table name: ")
         use_id = input("Do you want to use row id? (Y/N): ")
