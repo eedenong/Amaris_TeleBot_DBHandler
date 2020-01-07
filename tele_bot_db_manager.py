@@ -131,6 +131,7 @@ def cmd_handler(db_handler):
             use_id = True
         elif use_id == "N":
             use_id = False
+        
         if use_id:
             row_to_view = input("Please enter the row number to view (id): ")
             db_handler.view_data(table_name, row_to_view, use_id=True)
@@ -190,7 +191,7 @@ def is_userlogs(table_name):
 def main():
     # give functionality for creating table, inserting into table, deleting from table, retrieving data from table
 
-    conn = create_connection("test_tele.db")
+    conn = create_connection("amaris_manhole.db")
     
     while True:    
         db_handler = DBHandler(conn)
