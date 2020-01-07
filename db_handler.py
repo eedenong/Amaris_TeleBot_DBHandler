@@ -15,7 +15,7 @@ class DBHandler():
 
         
     def create_tables(self):
-        print("creating tables")
+        print("Creating tables")
     # Name is a string of the table name
     # Params is a tuple indicating the column names of the table to be created, and their respective data types
         cur = self.conn.cursor()
@@ -72,9 +72,6 @@ class DBHandler():
                 job_id = data[0]
                 lat = data[1]
                 lon = data[2]
-                print(job_id)
-                print(lat)
-                print(lon)
                 cur.execute('INSERT INTO JobsTable (job_id, latitude, longitude) VALUES (?, ?, ?)', (job_id, lat, lon))
                 self.conn.commit()
                 print("Data successfully inserted")
