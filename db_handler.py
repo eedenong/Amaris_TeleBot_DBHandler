@@ -370,7 +370,8 @@ class DBHandler():
                         raise Exception("job_id {} does not exist in table JobsTable".format(row))
                     else:
                         #self.__get_view_data__(data, ["job_id", "latitude", "longitude"])
-                        out_str = self.__get_view_data__(data, ["latitude", "longitude"])
+                        req_data = data[1:]
+                        out_str = self.__get_view_data__(req_data, ["latitude", "longitude"])
                 except Exception as e:
                     print(e.args[0])
             else:
@@ -381,7 +382,8 @@ class DBHandler():
                         raise Exception("id {} does not exist in table JobsTable".format(row))
                     else:
                         #self.__get_view_data__(data, ["job_id", "latitude", "longitude"])
-                        out_str = self.__get_view_data__(data, ["latitude", "longitude"])
+                        req_data = data[1:]
+                        out_str = self.__get_view_data__(req_data, ["latitude", "longitude"])
                 except Exception as e:
                     print(e.args[0])
         elif is_userlogs(table_name):
@@ -392,7 +394,7 @@ class DBHandler():
                     if data is None:
                         raise Exception("user_id {} does not exist in table UserLogs".format(row))
                     else:
-                        out_str = self.__get_view_data__(cur, ["user_id", "log"])
+                        out_str = self.__get_view_data__(data, ["user_id", "log"])
                 except Exception as e:
                     print(e.args[0])
             else:
@@ -402,7 +404,7 @@ class DBHandler():
                     if data is None:
                         raise Exception("id {} does not exist in table UserLogs".format(row))
                     else:
-                        out_str = self.__get_view_data__(cur, ["user_id", "log"])
+                        out_str = self.__get_view_data__(data, ["user_id", "log"])
                 except Exception as e:
                     print(e.args[0])
         return out_str
