@@ -1,8 +1,12 @@
+import re
+import sys
 import sqlite3
 import numpy as np
 import io
 import ast
 import json
+
+
 # Python class to handle the database
 # The class has one attribute, which is the connection to the database
 class DBHandler():
@@ -44,86 +48,194 @@ class DBHandler():
     # data_to_insert is a tuple with the format:
     # if table_name is JobsTable, data_to_insert = (job_id, latitude, longitude)
     # if table_name is UserLogs, data_to_insert = (user_id, log)
-    def insert_data(self, table_name, data_to_insert):
+    def insert_data(self, table_name, data_to_insert, num_insert):
+        # Empty data will resolve to true if data_to_insert is just whitespace
+        empty_data = not bool(data_to_insert.strip())
+        if empty_data:
+            print("Cannot insert empty data")
+            return None
+
+        if num_insert > 1:
+            self.__insert_mult__(table_name, data_to_insert, num_insert)
+        else:
+            self.__insert_single__(table_name, data_to_insert)
+    
+    def __insert_single__(self, table_name, data_to_insert):
         cur = self.conn.cursor()
-        #split the data_to_insert
-        data = data_to_insert.split(' ')
+        # Split the data_to_insert
+        data = re.split(' |\n', data_to_insert)
+
         # Inserting data into JobsTable
-        if table_name == "JobsTable":
-            print("Inserting into JobsTable: {}".format(data_to_insert))
+        if is_jobs(table_name):
+            try:
+                print("Inserting into JobsTable:\n{}".format(data_to_insert))
+                job_id = data[0]
+                lat = data[1]
+                lon = data[2]
+                print(job_id)
+                print(lat)
+                print(lon)
+                cur.execute('INSERT INTO JobsTable (job_id, latitude, longitude) VALUES (?, ?, ?)', (job_id, lat, lon))
+                self.conn.commit()
+                print("Data successfully inserted")
+                print("Finished inserting data")
+            except sqlite3.Error as e:
+                print("job_id {} already exists in JobsTable. Failed to insert data {}.".format(job_id, data_to_insert))
+                print("Try the UPDATE command instead.")
+                print(e.args[0])
+        elif is_userlogs(table_name):
+            try:
+                # create a dict 
+                # format of dict will be:
+                #{job_id:[date_success1, date_success2]}
+                logs_dict = {}
+                # get the user_id
+                user_id = data[0]
+                # get job_id
+                job_id = data[1]
+                # create empty array at job_id
+                logs_dict[job_id] = []
+                # get date_success
+                date_success = data[2]
+                # append to the array
+                logs_dict[job_id].append(date_success)
+                print(type(logs_dict))
+                # convert to bytes
+                logs_dict_bytes = json.dumps(logs_dict).encode('utf-8')
+                print(type(logs_dict_bytes))
+                print("Inserting into UserLogs: {}".format(data_to_insert))
+                #print(user_id)
+                #print(log)
+                cur.execute('INSERT INTO UserLogs (user_id, log) VALUES (?, ?)', (user_id, logs_dict_bytes))
+                self.conn.commit()
+                print("Data successfully inserted")
+                print("Finished inserting data")
+            except sqlite3.Error as e:
+                print("user_id {} already exists in UserLogs. Failed to insert data {}.")
+                print("Try the UPDATE command instead.")
+                print(e.args[0])
+        
+
+    def __insert_mult__(self, table_name, data_to_insert, num_insert):
+        cur = self.conn.cursor()
+        # Split the data string accordingly
+        data = re.split(' |\n', data_to_insert)
+        for n in range(1,num_insert+1):
+            # to get the idx to reference from data_to_update
+            curr = (n-1) * 3
+            #print("curr is {}".format(curr))
+            grp = " "
+            # get a list containing the arguments to be used to join
+            lis = []
+            lis.append(data[curr])
+            #print("curr list is {}".format(lis))
+            lis.append(data[curr+1])
+            #print("curr list is {}".format(lis))
+            lis.append(data[curr+2])
+            #print("curr list is {}".format(lis))
+            # join it back into a string as __update_single__ requires a string arg
+            grp = grp.join(lis)
+            print(grp)
+            #print("running update_single")
+            self.__insert_single__(table_name, grp)
+    # update_data enables the changing of data in the specified table_name
+    # data_to_update is a string 
+    # num_update is the number of items to be updated
+    # For jobs table: job_id latitude longitude
+    # For userlogs : user_id job_id date_success
+    def update_data(self, table_name, data_to_update, num_update):
+        empty_data = bool(data_to_update.strip())
+        if empty_data:
+            print("Cannot update with empty data")
+            return None
+        if num_update > 1:
+            self.__update_mult__(table_name, data_to_update, num_update)
+        else:
+            self.__update_single__(table_name, data_to_update)
+    
+    def __update_single__(self, table_name, data_to_update):
+        cur = self.conn.cursor()
+        # Split the data string accordingly
+        data = re.split(' |\n', data_to_update)
+        print(data)
+        if is_jobs(table_name):
             job_id = data[0]
             lat = data[1]
             lon = data[2]
-            print(job_id)
-            print(lat)
-            print(lon)
-            cur.execute('INSERT INTO JobsTable (job_id, latitude, longitude) VALUES (?, ?, ?)', (job_id, lat, lon))
-            self.conn.commit()
-        elif table_name == "UserLogs":
-            # create a dict 
-            # format of dict will be:
-            #{job_id:[date_success1, date_success2]}
-            logs_dict = {}
-            # get the user_id
-            user_id = data[0]
-            # get job_id
-            job_id = data[1]
-            # create empty array at job_id
-            logs_dict[job_id] = []
-            # get date_success
-            date_success = data[2]
-            # append to the array
-            logs_dict[job_id].append(date_success)
-            print(type(logs_dict))
-            # convert to bytes
-            logs_dict_bytes = json.dumps(logs_dict).encode('utf-8')
-            print(type(logs_dict_bytes))
-            print("Inserting into UserLogs: {}".format(data_to_insert))
-            #print(user_id)
-            #print(log)
-            cur.execute('INSERT INTO UserLogs (user_id, log) VALUES (?, ?)', (user_id, logs_dict_bytes))
-            self.conn.commit()
-        print("Data successfully inserted")
-    
-    # update_data enables the changing of data in the specified table_name
-    # data_to_update is a string 
-    # For jobs table: job_id latitude longitude
-    # For userlogs : user_id job_id date_success
-    def update_data(self, table_name, data_to_update):
-        cur = self.conn.cursor()
-        data = data_to_update.split(' ')
-        if table_name == "JobsTable":
-            print("Updating JobsTable data at job {} with lat {} and long {}".format(data[0], data[1], data[2]))
-            cur.execute('UPDATE JobsTable SET latitude = ?, longitude = ? WHERE job_id = ?', (data[1], data[2], data[0]))
-            self.conn.commit()
-        elif table_name == "UserLogs":
+            try:
+                cur.execute("SELECT id FROM JobsTable WHERE job_id = ?", (job_id, ))
+                data = cur.fetchone()
+                if data is None:
+                    raise Exception("job_id {} does not exist in table JobsTable".format(job_id))
+                else:
+                    print("Updating JobsTable data at job {} with lat {} and long {}".format(job_id, lat, lon))
+                    cur.execute('UPDATE JobsTable SET latitude = ?, longitude = ? WHERE job_id = ?', (lat, lon, job_id))
+            except Exception as e:
+                print(e.args[0])
+        elif is_userlogs(table_name):
             # check if the job exists in the user's log dict
             user_id = data[0]
             job_id = data[1]
             job_date = data[2]
-            cur.execute('SELECT log FROM UserLogs where user_id = ?', (user_id, ))
-            # get the dictionary in bytes at the user_id
-            user_log_dict = cur.fetchone()[0]
-            # convert the bytes to dictionary
-            user_log_dict = json.loads(user_log_dict)
-            print(type(user_log_dict))
-            print(user_log_dict)
             try:
-                user_log_dict[job_id].append(job_date)
-            except:
-                # if the job_id is not found in the log_dict, create the KV pair
-                # then append the date of job 
-                user_log_dict[job_id] = []
-                user_log_dict[job_id].append(job_date)
-            # update has finished, insert the dictionary back into the database
-            logs_dict_bytes = json.dumps(user_log_dict).encode('utf-8')
-            print(logs_dict_bytes)
+                cur.execute('SELECT id FROM UserLogs where user_id = ?', (user_id, ))
+                # Check if the user_id exists in the table
+                data = cur.fetchone()
+                if data is None:
+                    # data is None means that user_id does not exist in the table
+                    raise Exception("user_id {} does not exist in table UserLogs".format(user_id))
+                else:
+                    # else, the user_id exists in the table. check the logs dict
+                    # get the dictionary in bytes at the user_id
+                    # no need to check if the log exists as there will always be a log
+                    cur.execute('SELECT log FROM UserLogs where user_id = ?', (user_id, ))
+                    user_log_dict = cur.fetchone()[0]
+                    # convert the bytes to dictionary
+                    user_log_dict = json.loads(user_log_dict)
+                    print(type(user_log_dict))
+                    print(user_log_dict)
+                    try:
+                        user_log_dict[job_id].append(job_date)
+                    except:
+                        # if the job_id is not found in the log_dict, create the KV pair
+                        # then append the date of job 
+                        user_log_dict[job_id] = []
+                        user_log_dict[job_id].append(job_date)
+                    # update has finished, insert the dictionary back into the database
+                    logs_dict_bytes = json.dumps(user_log_dict).encode('utf-8')
+                    print(logs_dict_bytes)
 
-            print("Updating JobsTable data at user {} with log {}".format(user_id, user_log_dict))
-            cur.execute('UPDATE UserLogs SET log = ? WHERE user_id = ?', (logs_dict_bytes, user_id))
-            self.conn.commit()
-        print("Table updated")
-    
+                    print("Updating JobsTable data at user {} with log {}".format(user_id, user_log_dict))
+                    cur.execute('UPDATE UserLogs SET log = ? WHERE user_id = ?', (logs_dict_bytes, user_id))
+            except Exception as e:
+                print(e.args[0])
+        self.conn.commit()
+
+    # handles multiple arg updates by making use of the update single function
+    def __update_mult__(self, table_name, data_to_update, num_update):
+        # data_to_update is a string containing all the arguments
+        cur = self.conn.cursor()
+        # Split the data string accordingly
+        data = re.split(' |\n', data_to_update)
+        for n in range(1,num_update+1):
+            # to get the idx to reference from data_to_update
+            curr = (n-1) * 3
+            #print("curr is {}".format(curr))
+            grp = " "
+            # get a list containing the arguments to be used to join
+            lis = []
+            lis.append(data[curr])
+            #print("curr list is {}".format(lis))
+            lis.append(data[curr+1])
+            #print("curr list is {}".format(lis))
+            lis.append(data[curr+2])
+            #print("curr list is {}".format(lis))
+            # join it back into a string as __update_single__ requires a string arg
+            grp = grp.join(lis)
+            print(grp)
+            #print("running update_single")
+            self.__update_single__(table_name, grp)
+
     # deletes the specified row(s) from the table_name
     # for JobsTable, use job_id to reference row to be deleted
     # for UserLgs, use user_id to reference row to be deleted
@@ -142,26 +254,63 @@ class DBHandler():
             else:
                 self.__delete_single__(table_name, rows[0], use_id=True)
         self.conn.commit()
-        print("Data successfully deleted")
+        
 
 
     def __delete_single__(self, table_name, row, use_id=False):
         cur = self.conn.cursor()
-        if table_name == "JobsTable":
+        if is_jobs(table_name):
             if not use_id:
-                print("Deleting data from JobsTable at job {}".format(row))
-                cur.execute('DELETE FROM JobsTable WHERE job_id = ?', (row, ))
+                try:
+                    cur.execute("SELECT id FROM JobsTable WHERE job_id = ?",(row, ))
+                    data = cur.fetchone()
+                    if data is None:
+                        raise Exception("job_id {} does not exist in table JobsTable".format(row))
+                    else:
+                        print("Deleting data from JobsTable at job {}".format(row))
+                        cur.execute('DELETE FROM JobsTable WHERE job_id = ?', (row, ))
+                        print("Data successfully deleted")
+                except Exception as e:
+                    print(e.args[0])
             else:
-                print("Deleting data from JobsTable at row {}".format(row))
-                cur.execute('DELETE FROM JobsTable WHERE id = ?', (row, ))
-        elif table_name == "UserLogs":
+                try:
+                    cur.execute("SELECT id FROM JobsTable WHERE id = ?",(row, ))
+                    data = cur.fetchone()
+                    if data is None:
+                        raise Exception("id {} does not exist in table JobsTable".format(row))
+                    else:
+                        print("Deleting data from JobsTable at row {}".format(row))
+                        cur.execute('DELETE FROM JobsTable WHERE id = ?', (row, ))
+                        print("Data successfully deleted")
+                except Exception as e:
+                    print(e.args[0])
+        elif is_userlogs(table_name):
             if not use_id:
-                print("Deleting data from UserLogs at user_id {}".format(row))
-                cur.execute('DELETE FROM UserLogs WHERE user_id = ?', (row, ))
+                try:
+                    cur.execute("SELECT id FROM UserLogs WHERE user_id = ?", (row, ))
+                    data = cur.fetchone()
+                    if data is None:
+                        raise Exception("user_id {} does not exist in table UserLogs".format(row))
+                    else:
+                        print("Deleting data from UserLogs at user_id {}".format(row))
+                        cur.execute('DELETE FROM UserLogs WHERE user_id = ?', (row, ))
+                        print("Data successfully deleted")
+                except Exception as e:
+                    print(e.args[0])
             else:
-                print("Deleting data from UserLogs at row {}".format(row))
-                cur.execute('DELETE FROM UserLogs WHERE id = ?', (row, )) 
+                try:
+                    cur.execute("SELECT id from UserLogs where id = ?", (row, ))
+                    data = cur.fetchone()
+                    if data is None:
+                        raise Exception("id {} does not exist in table UserLogs".format(row))
+                    else:
+                        print("Deleting data from UserLogs at row {}".format(row))
+                        cur.execute('DELETE FROM UserLogs WHERE id = ?', (row, ))
+                        print("Data successfully deleted")
+                except Exception as e:
+                    print(e.args[0]) 
         self.conn.commit()
+        
 
     def __delete_mult__(self, table_name, rows, use_id=False):
         cur = self.conn.cursor()
@@ -170,15 +319,16 @@ class DBHandler():
         
     # returns the specified row in the table_name
     def view_data(self, table_name, row, use_id=False):
+        print("in view data")
         cur = self.conn.cursor()
-        if table_name == "JobsTable":
+        if is_jobs(table_name):
             if not use_id:
                 cur.execute('SELECT * FROM JobsTable WHERE job_id = ?', (row, ))
                 self.__print_view_data__(cur, ["job_id", "latitude", "longitude"])
             else:
                 cur.execute('SELECT * FROM JobsTable WHERE id = ?', (row, ))
                 self.__print_view_data__(cur, ["job_id", "latitude", "longitude"])
-        elif table_name == "UserLogs":
+        elif is_userlogs(table_name):
             if not use_id:
                 cur.execute('SELECT * FROM UserLogs WHERE user_id = ?', (row, ))
                 self.__print_view_data__(cur, ["user_id", "log"])
@@ -187,12 +337,27 @@ class DBHandler():
                 self.__print_view_data__(cur, ["user_id", "log"])
 
     def __print_view_data__(self, cursor, param_list):
+        print("in print data")
         data = cursor.fetchone()
         #print(type(data))
         print("--------- REQUESTED DATA ---------")
         count = 0
         for i in range(len(param_list)):
-            print("{}: {}".format(param_list[i], data[i+1]))
+            if isinstance(data[i+1], bytes):
+                # Means that the data is in the form of a dictionary, in bytes
+                # Decode it. d is of type dict
+                d = json.loads(data[i+1].decode('utf-8'))
+                print("{}:".format(param_list[i]))
+                # gets a list of tuples of the log items
+                # in the form of (job_id, date)
+                d_items = d.items()
+                for data in d_items:
+                    # for each tuple in the d_items list
+                    print("job_id: {}".format(data[0]))
+                    print("Date of attempt_success: {}".format(data[1][0])) 
+                #print("{}: {}".format(param_list[i], json.loads(data[i+1].decode('utf-8'))))
+            else:
+                print("{}: {}".format(param_list[i], data[i+1]))
         print("----------------------------------")
 
     def __get_params__(self):
@@ -311,3 +476,14 @@ def print_help(option):
         print("TEXT: string")
         print("BLOB: blob of data (in bytes)")
         print('-----------------------------------------------------------------')
+
+# Takes in a string and checks if it is a valid table name
+def check_valid_table_name(table_name):
+    is_JobsTable = table_name == "jobstable" or table_name == "jobs"
+    is_UserLogs = table_name == "userlogs" or table_name == "user" or table_name == "logs"
+    return is_JobsTable or is_UserLogs
+def is_jobs(table_name):
+    return table_name == "jobstable" or table_name == "jobs"
+
+def is_userlogs(table_name):
+    return table_name == "userlogs" or table_name == "user" or table_name == "logs"

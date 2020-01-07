@@ -51,11 +51,22 @@ Parameters:
 
 
 JobsTable:
-<job_id> <latitude> <longitude> 
+<job_id1> <latitude1> <longitude1> /r/n
+<job_id2> <latitude2> <longitude2> /r/n
+.
+.
+.
+<job_idN> <latitudeN> <longitudeN> /r/n
+/r/n
 
 UserLogs:
-<user_id> <job_1_id> <date_success>
-
+<user_id1> <job_id1> <date_success> /r/n
+<user_id2> <job_id2> <date_success> /r/n
+.
+.
+.
+<user_idN> <job_idN> <date_success> /r/n
+/r/n
 
 ### View / Deletion
 JobsTable:
@@ -63,3 +74,39 @@ JobsTable:
 
 UserLogs:
 <user_id_1> <user_id_2>...<user_id_3>
+
+### To be implemented
+- [X] Updated attributes of job_id and user_id to be UNIQUE
+- [X] Add functionality to exit at any point
+- [ ] Exception handling: Correct argument formatting for all functions
+
+#### Update function
+- [X] Single argument entry for JobsTable
+- [X] Single argument entry for UserLogs
+- [X] Multiple argument entry for JobsTable
+- [X] Multiple argument entry for UserLogs
+- [X] Exception handling: Only update EXISTING
+- [X] Exception handling: Assert correct number of arguments for multiple argument
+
+#### Delete function
+- [X] Single argument entry for JobsTable
+- [X] Single argument entry for UserLogs
+- [X] Multiple argument entry for JobsTable
+- [X] Multiple argument entry for UserLogs
+- [X] Exception handling: Only delete existing
+* For delete only, multiple arguments are handled in the same line
+
+#### Insertion function
+- [X] Single argument entry for JobsTable
+- [X] Single argument entry for UserLogs
+- [X] Multiple argument entry for JobsTable
+- [X] Multiple argument entry for UserLogs
+- [X] Exception handling: Cannot insert existing
+- [X] Exception handling: Cannot insert empty
+
+#### View function
+- [X] Single argument entry for JobsTable
+- [X] Single argument entry for UserLogs
+- [ ] Multiple argument entry for JobsTable
+- [ ] Multiple argument entry for UserLogs
+- [ ] Exception handling: Cannot view non existent
