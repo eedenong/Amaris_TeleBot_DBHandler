@@ -338,39 +338,39 @@ class DBHandler():
         
         return out_string
 
-        
-
-    ### bug in view data code   
-    '''
+    
     def view_data(self, table_name, rows, use_id=False):
         rows = rows.split(' ')
+        out_str = ""
         print("--------- REQUESTED DATA ---------")
         if not use_id:
             if len(rows) > 1:
-                self.__view_data_mult__(table_name, rows)
+                out_str = self.__view_data_mult__(table_name, rows)
             else:
-                self.__view_data_single__(table_name, rows[0])
+                out_str = self.__view_data_single__(table_name, rows[0])
         else:
             if len(rows) > 1:
-                self.__view_data_mult__(table_name, rows, use_id=True)
+                out_str = self.__view_data_mult__(table_name, rows, use_id=True)
             else:
-                self.__view_data_single__(table_name, rows[0], use_id=True)
+                out_str = self.__view_data_single__(table_name, rows[0], use_id=True)
+        print(out_str)
         print("----------------------------------")
-   
+        return out_str
    
     # returns the specified row in the table_name
     def __view_data_single__(self, table_name, row, use_id=False):
         cur = self.conn.cursor()
+        out_str = ""
         if is_jobs(table_name):
             if not use_id:
                 try:
                     cur.execute('SELECT * FROM JobsTable WHERE job_id = ?', (row, ))
                     data = cur.fetchone()
-                    print("data type in view data single is {}".format(type(data)))
                     if data is None:
                         raise Exception("job_id {} does not exist in table JobsTable".format(row))
                     else:
-                        self.__print_view_data__(cur, ["job_id", "latitude", "longitude"])
+                        #self.__get_view_data__(data, ["job_id", "latitude", "longitude"])
+                        out_str = self.__get_view_data__(data, ["latitude", "longitude"])
                 except Exception as e:
                     print(e.args[0])
             else:
@@ -380,7 +380,8 @@ class DBHandler():
                     if data is None:
                         raise Exception("id {} does not exist in table JobsTable".format(row))
                     else:
-                        self.__print_view_data__(cur, ["job_id", "latitude", "longitude"])
+                        #self.__get_view_data__(data, ["job_id", "latitude", "longitude"])
+                        out_str = self.__get_view_data__(data, ["latitude", "longitude"])
                 except Exception as e:
                     print(e.args[0])
         elif is_userlogs(table_name):
@@ -391,7 +392,7 @@ class DBHandler():
                     if data is None:
                         raise Exception("user_id {} does not exist in table UserLogs".format(row))
                     else:
-                        self.__print_view_data__(cur, ["user_id", "log"])
+                        out_str = self.__get_view_data__(cur, ["user_id", "log"])
                 except Exception as e:
                     print(e.args[0])
             else:
@@ -401,21 +402,24 @@ class DBHandler():
                     if data is None:
                         raise Exception("id {} does not exist in table UserLogs".format(row))
                     else:
-                        self.__print_view_data__(cur, ["user_id", "log"])
+                        out_str = self.__get_view_data__(cur, ["user_id", "log"])
                 except Exception as e:
                     print(e.args[0])
+        return out_str
 
     def __view_data_mult__(self, table_name, rows, use_id=False):
         cur = self.conn.cursor()
+        out_str = " "
+        str_arr = []
         for i in range(len(rows)):
-            self.__view_data_single__(table_name, rows[i], use_id)
+            str_arr.append(self.__view_data_single__(table_name, rows[i], use_id))
+        out_str = out_str.join(str_arr)
+        return out_str
 
-    def __print_view_data__(self, cursor, param_list):
-        data = cursor.fetchone()
-        print("data type in print view data is {}".format(type(data)))
+    # print view data should return a string containing the requested data
+    def __get_view_data__(self, data, param_list):
         out_string = " "
         st_arr = []
-        count = 0
         for i in range(len(param_list)):
             if isinstance(data[i+1], bytes):
                 # Means that the data is in the form of a dictionary, in bytes
@@ -434,9 +438,12 @@ class DBHandler():
                     #print("Date of attempt_success: {}".format(data[1][0])) 
                 #print("{}: {}".format(param_list[i], json.loads(data[i+1].decode('utf-8'))))
             else:
-                print("{}: {}".format(param_list[i], data[i+1]))
-        print()
-    '''
+                st_arr.append("{}: {}".format(param_list[i], data[i+1]))
+                #print("{}: {}".format(param_list[i], data[i+1]))
+        out_string = out_string.join(st_arr)
+        #print(out_string)
+        return out_string
+    
 
     def __get_params__(self):
         col_names_arr = []
