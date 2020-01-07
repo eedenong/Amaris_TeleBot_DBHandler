@@ -118,6 +118,10 @@ def cmd_handler(db_handler):
             db_handler.delete_data(table_name, row_to_delete)
     
     elif cmd == "VIEW":
+        table_name = "JobsTable"
+        job_id = input("Job id: ")
+        print(db_handler.get_job(table_name, job_id))
+        '''
         table_name = input("Please enter table name: ")
         if table_name.lower() == "exit":
             return False
@@ -140,6 +144,7 @@ def cmd_handler(db_handler):
             row_to_view = input("Please enter the row to view (job_id or user_id): ")
             db_handler.view_data(table_name, row_to_view)
             return True
+        '''
     elif cmd == "EXIT":
         return False
     else:

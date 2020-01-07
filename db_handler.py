@@ -317,8 +317,31 @@ class DBHandler():
         cur = self.conn.cursor()
         for i in range(len(rows)):
             self.__delete_single__(table_name, rows[i], use_id)
+
+    # if the job_id exists in the JobsTable, return its lat and long
+    # else return None
+    def get_job(self, table_name, job_id):
+        cur = self.conn.cursor()
+        out_string = " "
+        cur.execute("SELECT * FROM JobsTable WHERE job_id = ?", (job_id, ))
+        data = cur.fetchone()
+        print(data)
+        if len(data) == 0:
+            out_string = "Job not found!"
+        else:
+            # get the latitude and longitude
+            lat = data[2]
+            lon = data[3]
+            lat_str = "Latitude: {}".format(lat)
+            lon_str = "Longitude: {}".format(lon)
+            out_string = out_string.join([lat_str, lon_str])
         
-    
+        return out_string
+
+        
+
+    ### bug in view data code   
+    '''
     def view_data(self, table_name, rows, use_id=False):
         rows = rows.split(' ')
         print("--------- REQUESTED DATA ---------")
@@ -343,6 +366,7 @@ class DBHandler():
                 try:
                     cur.execute('SELECT * FROM JobsTable WHERE job_id = ?', (row, ))
                     data = cur.fetchone()
+                    print("data type in view data single is {}".format(type(data)))
                     if data is None:
                         raise Exception("job_id {} does not exist in table JobsTable".format(row))
                     else:
@@ -388,26 +412,31 @@ class DBHandler():
 
     def __print_view_data__(self, cursor, param_list):
         data = cursor.fetchone()
-        #print(type(data))
-        
+        print("data type in print view data is {}".format(type(data)))
+        out_string = " "
+        st_arr = []
         count = 0
         for i in range(len(param_list)):
             if isinstance(data[i+1], bytes):
                 # Means that the data is in the form of a dictionary, in bytes
                 # Decode it. d is of type dict
                 d = json.loads(data[i+1].decode('utf-8'))
-                print("{}:".format(param_list[i]))
+                st_arr.append(param_list[i])
+                #print("{}:".format(param_list[i]))
                 # gets a list of tuples of the log items
                 # in the form of (job_id, date)
                 d_items = d.items()
                 for data in d_items:
                     # for each tuple in the d_items list
-                    print("job_id: {}".format(data[0]))
-                    print("Date of attempt_success: {}".format(data[1][0])) 
+                    st_arr.append("job_id: {}".format(data[0]))
+                    #print("job_id: {}".format(data[0]))
+                    st_arr.append("Date of attempt_success: {}".format(data[1][0]))
+                    #print("Date of attempt_success: {}".format(data[1][0])) 
                 #print("{}: {}".format(param_list[i], json.loads(data[i+1].decode('utf-8'))))
             else:
                 print("{}: {}".format(param_list[i], data[i+1]))
         print()
+    '''
 
     def __get_params__(self):
         col_names_arr = []
