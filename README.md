@@ -78,7 +78,7 @@ UserLogs:
 ### To be implemented
 - [X] Updated attributes of job_id and user_id to be UNIQUE
 - [X] Add functionality to exit at any point
-- [ ] Exception handling: Correct argument formatting for all functions
+- [ ] Exception handling: Correct argument formatting for update and insertion
 
 #### Update function
 - [X] Single argument entry for JobsTable
@@ -107,6 +107,6 @@ UserLogs:
 #### View function
 - [X] Single argument entry for JobsTable
 - [X] Single argument entry for UserLogs
-- [ ] Multiple argument entry for JobsTable
-- [ ] Multiple argument entry for UserLogs
-- [ ] Exception handling: Cannot view non existent
+- [X] Multiple argument entry for JobsTable
+- [X] Multiple argument entry for UserLogs
+- [X] Exception handling: Cannot view non existent

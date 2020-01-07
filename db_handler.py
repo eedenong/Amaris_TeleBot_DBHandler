@@ -117,6 +117,7 @@ class DBHandler():
         
 
     def __insert_mult__(self, table_name, data_to_insert, num_insert):
+
         cur = self.conn.cursor()
         # Split the data string accordingly
         data = re.split(' |\n', data_to_insert)
@@ -317,30 +318,78 @@ class DBHandler():
         for i in range(len(rows)):
             self.__delete_single__(table_name, rows[i], use_id)
         
+    
+    def view_data(self, table_name, rows, use_id=False):
+        rows = rows.split(' ')
+        print("--------- REQUESTED DATA ---------")
+        if not use_id:
+            if len(rows) > 1:
+                self.__view_data_mult__(table_name, rows)
+            else:
+                self.__view_data_single__(table_name, rows[0])
+        else:
+            if len(rows) > 1:
+                self.__view_data_mult__(table_name, rows, use_id=True)
+            else:
+                self.__view_data_single__(table_name, rows[0], use_id=True)
+        print("----------------------------------")
+   
+   
     # returns the specified row in the table_name
-    def view_data(self, table_name, row, use_id=False):
-        print("in view data")
+    def __view_data_single__(self, table_name, row, use_id=False):
         cur = self.conn.cursor()
         if is_jobs(table_name):
             if not use_id:
-                cur.execute('SELECT * FROM JobsTable WHERE job_id = ?', (row, ))
-                self.__print_view_data__(cur, ["job_id", "latitude", "longitude"])
+                try:
+                    cur.execute('SELECT * FROM JobsTable WHERE job_id = ?', (row, ))
+                    data = cur.fetchone()
+                    if data is None:
+                        raise Exception("job_id {} does not exist in table JobsTable".format(row))
+                    else:
+                        self.__print_view_data__(cur, ["job_id", "latitude", "longitude"])
+                except Exception as e:
+                    print(e.args[0])
             else:
-                cur.execute('SELECT * FROM JobsTable WHERE id = ?', (row, ))
-                self.__print_view_data__(cur, ["job_id", "latitude", "longitude"])
+                try:
+                    cur.execute('SELECT * FROM JobsTable WHERE id = ?', (row, ))
+                    data = cur.fetchone()
+                    if data is None:
+                        raise Exception("id {} does not exist in table JobsTable".format(row))
+                    else:
+                        self.__print_view_data__(cur, ["job_id", "latitude", "longitude"])
+                except Exception as e:
+                    print(e.args[0])
         elif is_userlogs(table_name):
             if not use_id:
-                cur.execute('SELECT * FROM UserLogs WHERE user_id = ?', (row, ))
-                self.__print_view_data__(cur, ["user_id", "log"])
+                try:
+                    cur.execute('SELECT * FROM UserLogs WHERE user_id = ?', (row, ))
+                    data = cur.fetchone()
+                    if data is None:
+                        raise Exception("user_id {} does not exist in table UserLogs".format(row))
+                    else:
+                        self.__print_view_data__(cur, ["user_id", "log"])
+                except Exception as e:
+                    print(e.args[0])
             else:
-                cur.execute('SELECT * FROM UserLogs WHERE id = ?', (row, ))
-                self.__print_view_data__(cur, ["user_id", "log"])
+                try:
+                    cur.execute('SELECT * FROM UserLogs WHERE id = ?', (row, ))
+                    data = cur.fetchone()
+                    if data is None:
+                        raise Exception("id {} does not exist in table UserLogs".format(row))
+                    else:
+                        self.__print_view_data__(cur, ["user_id", "log"])
+                except Exception as e:
+                    print(e.args[0])
+
+    def __view_data_mult__(self, table_name, rows, use_id=False):
+        cur = self.conn.cursor()
+        for i in range(len(rows)):
+            self.__view_data_single__(table_name, rows[i], use_id)
 
     def __print_view_data__(self, cursor, param_list):
-        print("in print data")
         data = cursor.fetchone()
         #print(type(data))
-        print("--------- REQUESTED DATA ---------")
+        
         count = 0
         for i in range(len(param_list)):
             if isinstance(data[i+1], bytes):
@@ -358,7 +407,7 @@ class DBHandler():
                 #print("{}: {}".format(param_list[i], json.loads(data[i+1].decode('utf-8'))))
             else:
                 print("{}: {}".format(param_list[i], data[i+1]))
-        print("----------------------------------")
+        print()
 
     def __get_params__(self):
         col_names_arr = []
