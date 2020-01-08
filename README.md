@@ -26,25 +26,49 @@ as it's latitude and longitude
 - To implement: multiple insertion/deletion/update
 
 ### Main functions
-**insert_data(table_name, data_to_insert)**
+**insert_data(table_name, data_to_insert, num_insert)**
 Parameters:
-- table_name: JobsTable or UserLogs
-- data_to_insert: command line string
+- table_name: String. Taken as command line argument.
+- data_to_insert: String. Taken as command line argument.
+General format: row data1 data2
+If data_to_insert contains multiple lines, num_insert should correspond to the number of lines to be inserted.
+- num_insert: Integer. Number of rows to insert into database.
 
-**update_data(table_name, data_to_update)**
-Parameters:
-- table_name: JobsTable or UserLogs
-- data_to_update: command line string
+Function:
+Inserts data contained in __data_to_insert__ into the database. Alerts the user when user tries to insert a row that already exists in the database. Insertion of multiple data is allowed.
 
-**delete_data(table_name, rows)**
-Parameters:
-- table_name: JobsTable or UserLogs
-- rows: command line string 
 
-**view_data(table_name, row)**
+**update_data(table_name, data_to_update, num_insert)**
 Parameters:
-- table_name: JobsTable or UserLogs
-- row: command line string 
+- table_name: String. Taken as command line argument.
+- data_to_update: String. Taken as command line argument.
+General format: row data1 data2
+If data_to_update contains multiple lines, num_update should correspond to the number of lines to be updated.
+- num_insert: Integer. Number of rows to update in the database
+
+Function:
+Updates the specified row (read from data_to_update) to the contained data (also read from data_to_update). Update of multiple data is allowed.
+Alerts the user when user tries to update an entry that does not exist in the database, or with an empty entry.
+
+**delete_data(table_name, rows, use_id)**
+Parameters:
+- table_name: String. Taken as command line argument.
+- rows: String. Taken as command line argument.
+- use_id: Boolean. Flags whether the specified __rows__ indicates the specific row number (Int String), or is a user_id/job_id (String). If use_id is set to __True__, then __rows__ should be the specific row number.
+
+Function:
+Deletes the specified row(s) at the row number(s) if use_id=True, else at specified job_id(s)/user_id(s). 
+If __rows__ contains multiple numbers or job_id(s)/user_id(s), multiple rows of data will be deleted.
+Alerts the user if user tries to delete an entry that does not exist in the database.
+
+**view_data(table_name, rows, use_id)**
+Parameters:
+- table_name: String. Taken as command line argument.
+- rows: String. Taken as command line argument.
+- use_id: Boolean. Flags whether the specified __rows__ indicates the specific row number (Int String), or is a user_id/job_id (String). If use_id is set to __True__, then __rows__ should be the specific row number.
+
+Function:
+
 
 ### Formatting
 #### Insertion / Update

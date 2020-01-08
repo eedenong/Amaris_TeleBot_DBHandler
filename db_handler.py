@@ -326,7 +326,7 @@ class DBHandler():
         cur.execute("SELECT * FROM JobsTable WHERE job_id = ?", (job_id, ))
         data = cur.fetchone()
         print(data)
-        if len(data) == 0:
+        if data is None:
             out_string = "Job not found!"
         else:
             # get the latitude and longitude

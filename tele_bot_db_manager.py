@@ -196,7 +196,7 @@ def is_userlogs(table_name):
 def main():
     # give functionality for creating table, inserting into table, deleting from table, retrieving data from table
 
-    conn = create_connection("amaris_manhole.db")
+    conn = create_connection("test_amaris.db")
     
     while True:    
         db_handler = DBHandler(conn)
@@ -209,6 +209,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 
 
 # def adapt_array(arr):
