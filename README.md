@@ -1,7 +1,7 @@
-## Amaris.AI Telegram Bot Database Script for Singtel Manhole Duct Detection 
+# Amaris.AI Telegram Bot Database Script for Singtel Manhole Duct Detection 
 
-### Overview
-Database handler script for Amaris AI Singtel Manhole Duct Detection
+## Overview
+Database handler and manager script for Amaris AI Singtel Manhole Duct Detection.
 Database consists of 2 premade tables:
 1. JobsTable : Table containing the Job ID, and the location of the job represented
 as it's latitude and longitude
@@ -13,6 +13,38 @@ as it's latitude and longitude
             .
             .
             }
+To use these scripts in command line, refer to [Manager](#Manager)
+If you wish to simply import and use the db_handler.py script, refer to [Handler](#Handler) 
+
+### Manager
+_This assumes that you wish to run the script and its functions from the command line, and you don't already have an existing database_
+**Make sure that tele_bot_db_manager.py and db_handler.py are in the same directory**
+
+* You can rename your created database by editing the string in the create_connection function in tele_bot_db_manager.py (inside the main() function).
+
+From the command line, enter: 
+```
+python tele_bot_db_manager.py
+```
+Then, follow the printed prompts.
+
+### Handler
+*This assumes that you wish to import the db_handler script, and that your main script already creates a connection to an existing database*
+At the top of your script, write: 
+```
+from db_handler import DBHandler
+```
+Create a DBHandler object. Assume that the connection to your database is called *conn*.
+```
+handler = DBHandler(conn)
+```
+
+Then, you can use the DBHandler object to call the various [functions](#Main functions) specified in the db_handler script.
+Example: Creating tables using the create_tables() function in the db_handler script
+```
+handler.create_tables()
+```
+
 #### Supported functions:
 1. Insertion of _NEW_ data into JobsTable and UserLogs
 2. Update of _EXISTING_ data in JobsTable and UserLogs
@@ -89,22 +121,22 @@ A **single string** representing the specified row(s).
 
 
 _JobsTable_:
-<job_id1> <latitude1> <longitude1> /r/n
-<job_id2> <latitude2> <longitude2> /r/n
+<job_id1> <latitude1> <longitude1> <kbd>Enter<kbd>
+<job_id2> <latitude2> <longitude2> <kbd>Enter<kbd>
 .
 .
 .
-<job_idN> <latitudeN> <longitudeN> /r/n
-/r/n
+<job_idN> <latitudeN> <longitudeN> <kbd>Enter<kbd>
+<kbd>Enter<kbd>
 
 _UserLogs_:
-<user_id1> <job_id1> <date_success> /r/n
-<user_id2> <job_id2> <date_success> /r/n
+<user_id1> <job_id1> <date_success> <kbd>Enter<kbd>
+<user_id2> <job_id2> <date_success> <kbd>Enter<kbd>
 .
 .
 .
-<user_idN> <job_idN> <date_success> /r/n
-/r/n
+<user_idN> <job_idN> <date_success> <kbd>Enter<kbd>
+<kbd>Enter<kbd>
 
 ### View / Deletion
 _JobsTable_:
