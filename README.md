@@ -22,8 +22,7 @@ as it's latitude and longitude
 4. Viewing of job or user logs from JobsTable and UserLogs
 - This can be done by **any** user of the bot
 
-- Follow formatting specified in the formats section
-- To implement: multiple insertion/deletion/update
+* For all functions, follow the formatting specified in the [Formatting](#Formatting) section
 
 ### Main functions
 **insert_data(table_name, data_to_insert, num_insert)**
@@ -70,7 +69,7 @@ Parameters:
 Function:
 
 
-### Formatting
+### Formatting 
 #### Insertion / Update
 
 
