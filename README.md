@@ -121,22 +121,22 @@ A **single string** representing the specified row(s).
 
 
 _JobsTable_:
-<job_id1> <latitude1> <longitude1> <kbd>Enter<kbd>
-<job_id2> <latitude2> <longitude2> <kbd>Enter<kbd>
+<job_id1> <latitude1> <longitude1> <kbd>Enter</kbd>
+<job_id2> <latitude2> <longitude2> <kbd>Enter</kbd>
 .
 .
 .
-<job_idN> <latitudeN> <longitudeN> <kbd>Enter<kbd>
-<kbd>Enter<kbd>
+<job_idN> <latitudeN> <longitudeN> <kbd>Enter</kbd>
+<kbd>Enter</kbd>
 
 _UserLogs_:
-<user_id1> <job_id1> <date_success> <kbd>Enter<kbd>
-<user_id2> <job_id2> <date_success> <kbd>Enter<kbd>
+<user_id1> <job_id1> <date_success> <kbd>Enter</kbd>
+<user_id2> <job_id2> <date_success> <kbd>Enter</kbd>
 .
 .
 .
-<user_idN> <job_idN> <date_success> <kbd>Enter<kbd>
-<kbd>Enter<kbd>
+<user_idN> <job_idN> <date_success> <kbd>Enter</kbd>
+<kbd>Enter</kbd>
 
 ### View / Deletion
 _JobsTable_:
