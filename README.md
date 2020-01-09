@@ -39,7 +39,7 @@ Create a DBHandler object. Assume that the connection to your database is called
 handler = DBHandler(conn)
 ```
 
-Then, you can use the DBHandler object to call the various [functions](#Main functions) specified in the db_handler script.
+Then, you can use the DBHandler object to call the various [functions](#Main-functions) specified in the db_handler script.
 Example: Creating tables using the create_tables() function in the db_handler script
 ```
 handler.create_tables()
